@@ -399,6 +399,7 @@
         async function fetchVooQuote() {
             const dot = document.getElementById('statusDot');
             dot.classList.add('pulse-dot');
+            let isSuccess = false;
             try {
                 const url = `https://finnhub.io/api/v1/quote?symbol=VOO&token=${apiKeys.finnhub}&_t=${Date.now()}`;
                 const res = await fetch(url);
@@ -407,17 +408,13 @@
                 if (data.c != null && data.pc != null) {
                     state.currentPrice = data.c;
                     state.previousClose = data.pc;
-                    dot.classList.remove('bg-yellow-500', 'bg-red-500');
-                    dot.classList.add('bg-green-500');
+                    isSuccess = true;
                 }
             } catch (e) {
                 console.error("Fetch VOO Quote Error:", e);
-                dot.classList.remove('bg-yellow-500', 'bg-green-500');
-                dot.classList.add('bg-red-500');
             } finally {
                 dot.classList.remove('pulse-dot');
-                calculateAndUpdateUI();
-                document.getElementById('updateTime').innerText = `最後更新: ${new Date().toLocaleTimeString()}`;
+                return isSuccess;
             }
         }
         
@@ -467,18 +464,31 @@
         async function fetchAllData(isManual = false) {
              const refreshBtn = document.getElementById('refreshBtn');
              const refreshIcon = refreshBtn.querySelector('svg');
+             const dot = document.getElementById('statusDot');
+
              if(isManual) {
                 refreshIcon.classList.add('animate-spin');
                 refreshBtn.disabled = true;
              }
             
-            await Promise.all([
+            const results = await Promise.all([
                 fetchVooQuote(),
                 fetchHistoricalData(),
                 fetchGoogleSheetData()
             ]);
 
+            const isVooSuccess = results[0];
+
+            if (isVooSuccess) {
+                dot.classList.remove('bg-yellow-500', 'bg-red-500');
+                dot.classList.add('bg-green-500');
+            } else {
+                dot.classList.remove('bg-yellow-500', 'bg-green-500');
+                dot.classList.add('bg-red-500');
+            }
+
             calculateAndUpdateUI();
+            document.getElementById('updateTime').innerText = `最後更新: ${new Date().toLocaleTimeString()}`;
 
             if(isManual) {
                 refreshIcon.classList.remove('animate-spin');
@@ -487,12 +497,11 @@
         }
         
         window.addEventListener('load', () => {
-            calculateAndUpdateUI();
             fetchAllData(true);
             
             // Setup timers
-            setInterval(fetchVooQuote, 30 * 1000); // VOO every 30s
-            setInterval(fetchGoogleSheetData, 15 * 60 * 1000); // VIX, TWD every 15m
+            setInterval(fetchVooQuote, 30 * 1000); 
+            setInterval(fetchGoogleSheetData, 15 * 60 * 1000);
         });
 
     </script>
