@@ -129,13 +129,19 @@
                     <h2 class="text-lg font-bold mb-4">趨勢儀表板 🚦</h2>
                     <p class="text-sm text-slate-400 -mt-2 mb-4">判斷目前股價相對於市場平均成本的強弱。</p>
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center p-3 rounded-lg bg-slate-900/50 border border-slate-700" id="ma20StatusBox">
-                            <span class="text-slate-300">對比月線 (MA20)</span>
-                            <span id="ma20Status" class="font-bold">-</span>
+                        <div>
+                            <div class="flex justify-between items-center p-3 rounded-lg bg-slate-900/50 border border-slate-700" id="ma20StatusBox">
+                                <span class="text-slate-300">對比月線 (MA20)</span>
+                                <span id="ma20Status" class="font-bold">-</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1 px-1">股價在月線之上，短期偏多；反之則偏空。</p>
                         </div>
-                        <div class="flex justify-between items-center p-3 rounded-lg bg-slate-900/50 border border-slate-700" id="ma50StatusBox">
-                            <span class="text-slate-300">對比季線 (MA50)</span>
-                            <span id="ma50Status" class="font-bold">-</span>
+                        <div>
+                            <div class="flex justify-between items-center p-3 rounded-lg bg-slate-900/50 border border-slate-700" id="ma50StatusBox">
+                                <span class="text-slate-300">對比季線 (MA50)</span>
+                                <span id="ma50Status" class="font-bold">-</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1 px-1">季線是中期多空分水嶺，站上為強，跌破為弱。</p>
                         </div>
                     </div>
                 </div>
@@ -150,11 +156,38 @@
                     <div class="space-y-8">
                         <!-- Levels will be injected here -->
                     </div>
-                    <div id="actionAlert" class="mt-8 p-4 rounded-lg bg-slate-800 border border-slate-700 flex items-start gap-3 hidden">
-                        <i data-lucide="bell-ring" class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5"></i>
-                        <div>
-                            <h4 class="font-bold text-white" id="alertTitle">建議行動</h4>
-                            <p class="text-slate-300 text-sm mt-1" id="alertText">目前尚無觸發任何買點。</p>
+                    <div class="space-y-4 mt-8">
+                        <!-- State: Wait -->
+                        <div id="alertStateWait" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
+                            <i data-lucide="glasses" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
+                            <div>
+                                <h4 class="font-bold">👀 觀察等待中</h4>
+                                <p class="text-sm mt-1" id="alertTextWait">等待數據載入...</p>
+                            </div>
+                        </div>
+                        <!-- State: S1 -->
+                        <div id="alertStateS1" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
+                            <i data-lucide="shopping-cart" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
+                            <div>
+                                <h4 class="font-bold">✅ 初階買點觸發！</h4>
+                                <p class="text-sm mt-1">已觸發 4% 回檔，適合進行首批試單建倉。</p>
+                            </div>
+                        </div>
+                        <!-- State: S2 -->
+                        <div id="alertStateS2" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
+                            <i data-lucide="shopping-bag" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
+                            <div>
+                                <h4 class="font-bold">⚠️ 強烈買點觸發！</h4>
+                                <p class="text-sm mt-1">已觸發 5% 回檔，可考慮放大資金規模。</p>
+                            </div>
+                        </div>
+                        <!-- State: S3 -->
+                        <div id="alertStateS3" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
+                             <i data-lucide="gem" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
+                            <div>
+                                <h4 class="font-bold">🚨 絕地大特價觸發！</h4>
+                                <p class="text-sm mt-1">已觸發 7% 回檔，可考慮執行最終批次買進。</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -183,7 +216,7 @@
         };
 
         function renderSupportLevels() {
-            const container = document.querySelector('.lg\\:col-span-2 .space-y-8');
+            const container = document.querySelector('.lg\:col-span-2 .space-y-8');
             let html = '';
             config.supportLevels.forEach(level => {
                 html += `
@@ -298,27 +331,33 @@
                 }
             });
 
-            const alertBox = document.getElementById('actionAlert');
-            const title = document.getElementById('alertTitle');
-            const text = document.getElementById('alertText');
-            alertBox.classList.remove('hidden');
+            const alertStates = {
+                wait: document.getElementById('alertStateWait'),
+                s1: document.getElementById('alertStateS1'),
+                s2: document.getElementById('alertStateS2'),
+                s3: document.getElementById('alertStateS3')
+            };
+            const alertTextWait = document.getElementById('alertTextWait');
+
+            Object.values(alertStates).forEach(el => {
+                if(el) el.className = "p-4 rounded-lg border border-slate-800 flex items-start gap-3 transition-all duration-300 text-slate-500 opacity-50";
+            });
 
             const s3Price = high20 * (1 - config.supportLevels[2].drop);
             const s2Price = high20 * (1 - config.supportLevels[1].drop);
             const s1Price = high20 * (1 - config.supportLevels[0].drop);
 
             if (sheetPrice <= s3Price && s3Price > 0) {
-                 title.innerText = "🚨 絕地大特價觸發！";
-                 text.innerText = `已觸發 ${config.supportLevels[2].drop*100}% 回檔，可考慮執行最終批次買進。`;
+                alertStates.s3.className = "p-4 rounded-lg border border-rose-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-rose-900/40";
             } else if (sheetPrice <= s2Price && s2Price > 0) {
-                 title.innerText = "⚠️ 強烈買點觸發！";
-                 text.innerText = `已觸發 ${config.supportLevels[1].drop*100}% 回檔，可考慮放大資金規模。`;
+                alertStates.s2.className = "p-4 rounded-lg border border-amber-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-amber-900/40";
             } else if (sheetPrice <= s1Price && s1Price > 0) {
-                title.innerText = "✅ 初階買點觸發！";
-                text.innerText = `已觸發 ${config.supportLevels[0].drop*100}% 回檔，適合進行首批試單建倉。`;
+                alertStates.s1.className = "p-4 rounded-lg border border-emerald-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-emerald-900/40";
             } else {
-                title.innerText = "👀 觀察等待中";
-                text.innerText = s1Price > 0 ? `🎯 獵物尚未進入射程！距離最近買點還有 ${(sheetPrice - s1Price).toFixed(2)} 美元，請耐心等待...` : '等待市場數據載入...';
+                if (alertStates.wait) {
+                    alertStates.wait.className = "p-4 rounded-lg border border-slate-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100";
+                    alertTextWait.innerText = s1Price > 0 ? `🎯 獵物尚未進入射程！距離最近買點還有 ${(sheetPrice - s1Price).toFixed(2)} 美元，請耐心等待...` : '等待市場數據載入...';
+                }
             }
             
             lucide.createIcons();
