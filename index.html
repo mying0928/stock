@@ -26,7 +26,7 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
         .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } } 
         .is-loading svg { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
@@ -162,29 +162,29 @@
                         <div id="alertStateWait" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                             <i data-lucide="glasses" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
-                                <h4 class="font-bold">👀 觀察等待中</h4>
-                                <p class="text-sm mt-1" id="alertTextWait">等待數據載入...</p>
+                                <h4 class="text-sm font-bold">👀 觀察等待中</h4>
+                                <p class="text-xs mt-1" id="alertTextWait">等待數據載入...</p>
                             </div>
                         </div>
                         <div id="alertStateS1" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                             <i data-lucide="shopping-cart" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
-                                <h4 class="font-bold">✅ 初階買點觸發！</h4>
-                                <p class="text-sm mt-1">已觸發 4% 回檔，適合進行首批試單建倉。</p>
+                                <h4 class="text-sm font-bold">✅ 初階買點觸發！</h4>
+                                <p class="text-xs mt-1">已觸發 4% 回檔，適合進行首批試單建倉。</p>
                             </div>
                         </div>
                         <div id="alertStateS2" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                             <i data-lucide="shopping-bag" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
-                                <h4 class="font-bold">⚠️ 強烈買點觸發！</h4>
-                                <p class="text-sm mt-1">已觸發 5% 回檔，可考慮放大資金規模。</p>
+                                <h4 class="text-sm font-bold">⚠️ 強烈買點觸發！</h4>
+                                <p class="text-xs mt-1">已觸發 5% 回檔，可考慮放大資金規模。</p>
                             </div>
                         </div>
                         <div id="alertStateS3" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                              <i data-lucide="gem" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
-                                <h4 class="font-bold">🚨 絕地大特價觸發！</h4>
-                                <p class="text-sm mt-1">已觸發 7% 回檔，可考慮執行最終批次買進。</p>
+                                <h4 class="text-sm font-bold">🚨 絕地大特價觸發！</h4>
+                                <p class="text-xs mt-1">已觸發 7% 回檔，可考慮執行最終批次買進。</p>
                             </div>
                         </div>
                     </div>
@@ -201,10 +201,9 @@
             googleSheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsKINCRk0uXPgo0P6Zmof1ib2HBdep_130-kXV4Qxuo83HpDbWgbtytDKg90P0vngP8kn-Skg-xgzx/pub?gid=1414034082&single=true&output=csv',
             cacheDuration: 20 * 60 * 1000, // 20 minutes
             supportLevels: [
-                // 修正：Tailwind 需要完整的 class 名稱才能正確編譯顏色
-                { name: '初階買點 (支撐一)', drop: 0.04, description: '第一步：投入部分資金「試水溫」的價位。', colorClass: 'bg-emerald-500', id: 's1' },
-                { name: '強烈買點 (支撐二)', drop: 0.05, description: '關鍵時刻：考慮「放大資金」積極進攻！', colorClass: 'bg-amber-500', id: 's2' },
-                { name: '極限特價 (支撐三)', drop: 0.07, description: '史詩級特價：市場恐慌下的「絕地反攻」機會！', colorClass: 'bg-rose-500', id: 's3' }
+                { name: '初階買點 (支撐一)', drop: 0.04, description: '第一步：投入部分資金「試水溫」的價位。', color: 'emerald', id: 's1' },
+                { name: '強烈買點 (支撐二)', drop: 0.05, description: '關鍵時刻：考慮「放大資金」積極進攻！', color: 'amber', id: 's2' },
+                { name: '極限特價 (支撐三)', drop: 0.07, description: '史詩級特價：市場恐慌下的「絕地反攻」機會！', color: 'rose', id: 's3' }
             ]
         };
 
@@ -235,7 +234,7 @@
                             </div>
                         </div>
                         <div class="h-3 w-full bg-slate-800 rounded-full overflow-hidden">
-                            <div id="${level.id}Bar" class="h-full ${level.colorClass} transition-all duration-500 w-0"></div>
+                            <div id="${level.id}Bar" class="h-full bg-${level.color}-500 transition-all duration-500 w-0"></div>
                         </div>
                     </div>`;
             });
@@ -249,53 +248,34 @@
                 '近 20 日高點': high20 = 0,
                 'VOO 月線 (MA20)': ma20 = 0,
                 'VOO 季線 (MA50)': ma50 = 0,
-                '市場恐慌指標(VIX)': vix = 0, // 修正：移除 VIX Key 的空格
+                '市場恐慌指標 (VIX)': vix = 0,
                 'USD/TWD 匯率': twdRate = 0
             } = sheetData;
             
-            // Helper to show '---' when data is not ready
-            const formatValue = (value, decimals = 2) => value > 0 ? parseFloat(value).toFixed(decimals) : '---';
-            const formatInput = (el, value) => {
-                if (value > 0) {
-                    el.value = parseFloat(value).toFixed(2);
-                } else {
-                    el.placeholder = '載入中...';
-                    el.value = '';
-                }
-            };
-            
-            document.getElementById('realtimePrice').innerText = formatValue(realtimePrice);
-
+            document.getElementById('realtimePrice').innerText = realtimePrice.toFixed(2);
             const changePct = previousClose > 0 ? ((realtimePrice - previousClose) / previousClose) * 100 : 0;
             const changeEl = document.getElementById('priceChange');
             const changeContainer = document.getElementById('priceChangeContainer');
             const iconWrapper = document.getElementById('priceChangeIconWrapper');
-            
-            if (realtimePrice > 0 && previousClose > 0) {
-                if(changePct >= 0) {
-                    changeEl.innerText = `+${changePct.toFixed(2)}%`;
-                    changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-emerald-500 font-bold";
-                    iconWrapper.innerHTML = '<i data-lucide="trending-up" class="w-4 h-4"></i>';
-                } else {
-                    changeEl.innerText = `${changePct.toFixed(2)}%`;
-                    changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-rose-500 font-bold";
-                    iconWrapper.innerHTML = '<i data-lucide="trending-down" class="w-4 h-4"></i>';
-                }
+            if(changePct >= 0) {
+                changeEl.innerText = `+${changePct.toFixed(2)}%`;
+                changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-emerald-500 font-bold";
+                iconWrapper.innerHTML = '<i data-lucide="trending-up" class="w-4 h-4"></i>';
             } else {
-                 changeEl.innerText = '---';
-                 changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-slate-400";
-                 iconWrapper.innerHTML = '<i data-lucide="minus" class="w-4 h-4"></i>';
+                changeEl.innerText = `${changePct.toFixed(2)}%`;
+                changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-rose-500 font-bold";
+                iconWrapper.innerHTML = '<i data-lucide="trending-down" class="w-4 h-4"></i>';
             }
 
-            document.getElementById('sheetPrice').innerText = formatValue(sheetPrice);
-            formatInput(document.getElementById('high20'), high20);
-            formatInput(document.getElementById('ma20'), ma20);
-            formatInput(document.getElementById('ma50'), ma50);
-            formatInput(document.getElementById('twdRate'), twdRate);
-            document.getElementById('vixValue').innerText = formatValue(vix);
+            document.getElementById('sheetPrice').innerText = parseFloat(sheetPrice).toFixed(2);
+            document.getElementById('high20').value = parseFloat(high20).toFixed(2);
+            document.getElementById('ma20').value = parseFloat(ma20).toFixed(2);
+            document.getElementById('ma50').value = parseFloat(ma50).toFixed(2);
+            document.getElementById('twdRate').value = parseFloat(twdRate).toFixed(2);
+            document.getElementById('vixValue').innerText = parseFloat(vix).toFixed(2);
             
             const drawdown = high20 > 0 ? ((sheetPrice - high20) / high20) * 100 : 0;
-            document.getElementById('drawdown').innerText = high20 > 0 ? `${drawdown.toFixed(2)}%` : '---';
+            document.getElementById('drawdown').innerText = `${drawdown.toFixed(2)}%`;
 
             const vixStatus = document.getElementById('vixStatus');
             if (vix > 0) {
@@ -309,9 +289,6 @@
                     vixStatus.innerText = "⚠️ 市場略為謹慎";
                     vixStatus.className = "mt-2 text-sm font-medium text-amber-500";
                 }
-            } else {
-                 vixStatus.innerText = "等待資料...";
-                 vixStatus.className = "mt-2 text-sm font-medium text-slate-400";
             }
             
             function updateMAStatus(idPrefix, price, maPrice, name) {
@@ -324,38 +301,29 @@
                     statusEl.className = "font-bold text-rose-500";
                 }
             }
-
-            if (sheetPrice > 0 && ma20 > 0) updateMAStatus('ma20', sheetPrice, ma20, '月線');
-            if (sheetPrice > 0 && ma50 > 0) updateMAStatus('ma50', sheetPrice, ma50, '季線');
+            if (ma20 > 0) updateMAStatus('ma20', sheetPrice, ma20, '月線');
+            if (ma50 > 0) updateMAStatus('ma50', sheetPrice, ma50, '季線');
             
             config.supportLevels.forEach(level => {
                 const targetPrice = high20 * (1 - level.drop);
-                const priceEl = document.getElementById(`${level.id}Price`);
+                document.getElementById(`${level.id}Price`).innerText = `$${targetPrice.toFixed(2)}`;
                 const distEl = document.getElementById(`${level.id}Dist`);
                 const barEl = document.getElementById(`${level.id}Bar`);
+                const diff = sheetPrice - targetPrice;
                 
-                if (high20 > 0) {
-                    priceEl.innerText = `$${targetPrice.toFixed(2)}`;
-                    const diff = sheetPrice - targetPrice;
-                    
-                    if (diff <= 0) {
-                        distEl.innerText = "✅ 已到達買點！";
-                        distEl.className = "text-sm font-bold text-emerald-400";
-                        barEl.style.width = "100%";
-                    } else {
-                        const diffPct = sheetPrice > 0 ? (diff / sheetPrice) * 100 : 0;
-                        distEl.innerText = `距離: ${diffPct.toFixed(2)}%`;
-                        distEl.className = "text-sm text-slate-400";
-                        const totalDropRange = high20 - targetPrice;
-                        const currentDrop = high20 - sheetPrice;
-                        let fillPct = (totalDropRange > 0) ? (currentDrop / totalDropRange) * 100 : 0;
-                        fillPct = Math.max(0, Math.min(100, fillPct));
-                        barEl.style.width = `${fillPct}%`;
-                    }
+                if (diff <= 0) {
+                    distEl.innerText = "✅ 已到達買點！";
+                    distEl.className = "text-sm font-bold text-emerald-400";
+                    barEl.style.width = "100%";
                 } else {
-                    priceEl.innerText = '$---';
-                    distEl.innerText = `距離: ---`;
-                    barEl.style.width = "0%";
+                    const diffPct = sheetPrice > 0 ? (diff / sheetPrice) * 100 : 0;
+                    distEl.innerText = `距離: ${diffPct.toFixed(2)}%`;
+                    distEl.className = "text-sm text-slate-400";
+                    const totalDropRange = high20 - targetPrice;
+                    const currentDrop = high20 - sheetPrice;
+                    let fillPct = (totalDropRange > 0) ? (currentDrop / totalDropRange) * 100 : 0;
+                    fillPct = Math.max(0, Math.min(100, fillPct));
+                    barEl.style.width = `${fillPct}%`;
                 }
             });
 
@@ -375,20 +343,16 @@
             const s2Price = high20 * (1 - config.supportLevels[1].drop);
             const s1Price = high20 * (1 - config.supportLevels[0].drop);
 
-            if (sheetPrice > 0 && s3Price > 0 && sheetPrice <= s3Price) {
+            if (sheetPrice <= s3Price && s3Price > 0) {
                 if(alertStates.s3) alertStates.s3.className = "p-4 rounded-lg border border-rose-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-rose-900/40";
-            } else if (sheetPrice > 0 && s2Price > 0 && sheetPrice <= s2Price) {
+            } else if (sheetPrice <= s2Price && s2Price > 0) {
                 if(alertStates.s2) alertStates.s2.className = "p-4 rounded-lg border border-amber-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-amber-900/40";
-            } else if (sheetPrice > 0 && s1Price > 0 && sheetPrice <= s1Price) {
+            } else if (sheetPrice <= s1Price && s1Price > 0) {
                 if(alertStates.s1) alertStates.s1.className = "p-4 rounded-lg border border-emerald-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-emerald-900/40";
             } else {
                 if (alertStates.wait) {
                     alertStates.wait.className = "p-4 rounded-lg border border-slate-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100";
-                    if (s1Price > 0 && sheetPrice > 0) {
-                         alertTextWait.innerText = `🎯 獵物尚未進入射程！距離最近買點還有 ${(sheetPrice - s1Price).toFixed(2)} 美元，請耐心等待...`;
-                    } else {
-                        alertTextWait.innerText = '等待市場數據載入...';
-                    }
+                    alertTextWait.innerText = s1Price > 0 ? `🎯 獵物尚未進入射程！距離最近買點還有 ${(sheetPrice - s1Price).toFixed(2)} 美元，請耐心等待...` : '等待市場數據載入...';
                 }
             }
             
@@ -401,26 +365,20 @@
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`Finnhub API Error: ${res.statusText}`);
                 const data = await res.json();
-                
-                // 修正：必須嚴格確保資料存在且為數字，否則如果 Token 錯誤會出現 undefined
-                if (data && typeof data.c === 'number' && typeof data.pc === 'number') {
+                if (data.c != null && data.pc != null) {
                     state.realtimePrice = data.c;
                     state.previousClose = data.pc;
-                    return true;
-                } else {
-                    console.warn("Finnhub Invalid Data (Token 可能有誤):", data);
-                    return false;
                 }
             } catch (e) {
                 console.error("Fetch VOO Quote Error:", e);
                 return false;
             }
+            return true;
         }
 
         async function fetchGoogleSheetData(force = false) {
-            const cacheKey = 'voo_dashboard_sheet_data_v2';
+            const cacheKey = 'googleSheetData';
             const cached = localStorage.getItem(cacheKey);
-            
             if (cached && !force) {
                 const { timestamp, data } = JSON.parse(cached);
                 if (Date.now() - timestamp < config.cacheDuration) {
@@ -429,75 +387,30 @@
                 }
             }
 
-            const maxRetries = 2; // 總共嘗試 2 次
-            const retryDelay = 5000; // 延遲 5 秒
-
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                try {
-                    const url = `${config.googleSheetUrl}&_t=${Date.now()}`;
-                    const res = await fetch(url);
-                    if (!res.ok) throw new Error(`Google Sheet fetch error: ${res.statusText}`);
-                    
-                    const csvText = await res.text();
-                    
-                    if (csvText.trim().toLowerCase().startsWith('<!doctype html>')) {
-                         throw new Error("取得 HTML 網頁而非 CSV，請確認你的 Google Sheet 有正確使用『發布到網路 -> 格式選 CSV』。");
+            try {
+                const url = `${config.googleSheetUrl}&_t=${Date.now()}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`Google Sheet fetch error: ${res.statusText}`);
+                
+                const csvText = await res.text();
+                const rows = csvText.trim().split('\n').map(row => row.split(','));
+                const data = {};
+                rows.forEach(row => {
+                  if (row.length >= 2) {
+                    const key = row[0].trim();
+                    const value = parseFloat(row[1]);
+                    if (key && !isNaN(value)) {
+                      data[key] = value;
                     }
-
-                    const rows = csvText.trim().split(/\r?\n/);
-                    const data = {};
-                    
-                    rows.forEach((row, index) => {
-                      const parts = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                      if (parts.length >= 2) {
-                        const key = parts[0].trim().replace(/^"|"$/g, '');
-                        const rawValue = parts[1].trim().replace(/^"|"$/g, '');
-                        const numericString = rawValue.replace(/[^0-9.-]/g, ''); 
-                        const value = parseFloat(numericString);
-                        
-                        if (key && !isNaN(value)) {
-                          data[key] = value;
-                        } else if (key) {
-                           console.warn(`無法解析第 ${index + 1} 行的數值 [${key}]:`, rawValue);
-                        }
-                      }
-                    });
-
-                    // 強化版：檢查所有必要欄位是否存在
-                    const requiredKeys = [
-                        'VOO 目前價格', 'USD/TWD 匯率', 'VOO 月線 (MA20)',
-                        'VOO 季線 (MA50)', '近 20 日高點', '市場恐慌指標(VIX)'
-                    ];
-                    const missingKeys = requiredKeys.filter(key => !(key in data));
-
-                    if (missingKeys.length > 0) {
-                        throw new Error(`資料不完整，缺少關鍵欄位: ${missingKeys.join(', ')}。可能是 G-Sheet 正在載入。`);
-                    }
-
-                    // 成功
-                    state.sheetData = data;
-                    localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
-                    console.log(`在第 ${attempt} 次嘗試成功獲取 Google Sheet 資料。`);
-                    return true;
-
-                } catch(e) {
-                    console.error(`第 ${attempt} 次嘗試失敗: ${e.message}`);
-                    if (attempt < maxRetries) {
-                        console.log(`等待 ${retryDelay / 1000} 秒後重試...`);
-                        await new Promise(resolve => setTimeout(resolve, retryDelay));
-                    }
-                }
+                  }
+                });
+                state.sheetData = data;
+                localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
+            } catch(e) {
+                console.error("Fetch Google Sheet Data Error:", e);
+                return false;
             }
-
-            // 所有重試都失敗
-            console.error("所有獲取 Google Sheet 資料的嘗試都失敗了。");
-            if (cached) {
-                console.warn("使用舊有快取資料...");
-                state.sheetData = JSON.parse(cached).data;
-                return true; // 因為有舊資料可用，所以仍然回傳 true
-            }
-
-            return false; // 完全沒有任何資料
+            return true;
         }
         
         async function fetchAllData(isManual = false) {
@@ -518,22 +431,14 @@
 
             const [isVooSuccess, isSheetSuccess] = results;
 
-            // 調整狀態燈號判定，方便知道是哪邊斷線
             if (isVooSuccess && isSheetSuccess) {
                 dot.className = 'w-3 h-3 rounded-full bg-green-500';
-            } else if (isVooSuccess || isSheetSuccess) {
-                dot.className = 'w-3 h-3 rounded-full bg-yellow-500'; 
             } else {
                 dot.className = 'w-3 h-3 rounded-full bg-red-500';
             }
 
             updateUI();
-            
-            if (!isSheetSuccess) {
-                updateTimeEl.innerText = 'G-Sheet 連線失敗';
-            } else {
-                updateTimeEl.innerText = `最後更新: ${new Date().toLocaleTimeString()}`;
-            }
+            updateTimeEl.innerText = `最後更新: ${new Date().toLocaleTimeString()}`;
 
             if(isManual) {
                 refreshBtn.classList.remove('is-loading');
@@ -550,7 +455,7 @@
                 updateUI();
             }, 30 * 1000); 
             
-            setInterval(() => fetchAllData(false), 5 * 60 * 1000); 
+            setInterval(() => fetchAllData(false), 5 * 60 * 1000); // Check for fresh sheet data every 5 mins
         });
     </script>
 </body>
