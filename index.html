@@ -249,35 +249,53 @@
                 '近 20 日高點': high20 = 0,
                 'VOO 月線 (MA20)': ma20 = 0,
                 'VOO 季線 (MA50)': ma50 = 0,
-                '市場恐慌指標 (VIX)': vix = 0,
+                '市場恐慌指標(VIX)': vix = 0, // 修正：移除 VIX Key 的空格
                 'USD/TWD 匯率': twdRate = 0
             } = sheetData;
             
-            document.getElementById('realtimePrice').innerText = realtimePrice > 0 ? realtimePrice.toFixed(2) : '0.00';
+            // Helper to show '---' when data is not ready
+            const formatValue = (value, decimals = 2) => value > 0 ? parseFloat(value).toFixed(decimals) : '---';
+            const formatInput = (el, value) => {
+                if (value > 0) {
+                    el.value = parseFloat(value).toFixed(2);
+                } else {
+                    el.placeholder = '載入中...';
+                    el.value = '';
+                }
+            };
+            
+            document.getElementById('realtimePrice').innerText = formatValue(realtimePrice);
+
             const changePct = previousClose > 0 ? ((realtimePrice - previousClose) / previousClose) * 100 : 0;
             const changeEl = document.getElementById('priceChange');
             const changeContainer = document.getElementById('priceChangeContainer');
             const iconWrapper = document.getElementById('priceChangeIconWrapper');
             
-            if(changePct >= 0) {
-                changeEl.innerText = `+${changePct.toFixed(2)}%`;
-                changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-emerald-500 font-bold";
-                iconWrapper.innerHTML = '<i data-lucide="trending-up" class="w-4 h-4"></i>';
+            if (realtimePrice > 0 && previousClose > 0) {
+                if(changePct >= 0) {
+                    changeEl.innerText = `+${changePct.toFixed(2)}%`;
+                    changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-emerald-500 font-bold";
+                    iconWrapper.innerHTML = '<i data-lucide="trending-up" class="w-4 h-4"></i>';
+                } else {
+                    changeEl.innerText = `${changePct.toFixed(2)}%`;
+                    changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-rose-500 font-bold";
+                    iconWrapper.innerHTML = '<i data-lucide="trending-down" class="w-4 h-4"></i>';
+                }
             } else {
-                changeEl.innerText = `${changePct.toFixed(2)}%`;
-                changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-rose-500 font-bold";
-                iconWrapper.innerHTML = '<i data-lucide="trending-down" class="w-4 h-4"></i>';
+                 changeEl.innerText = '---';
+                 changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-slate-400";
+                 iconWrapper.innerHTML = '<i data-lucide="minus" class="w-4 h-4"></i>';
             }
 
-            document.getElementById('sheetPrice').innerText = parseFloat(sheetPrice).toFixed(2);
-            document.getElementById('high20').value = parseFloat(high20).toFixed(2);
-            document.getElementById('ma20').value = parseFloat(ma20).toFixed(2);
-            document.getElementById('ma50').value = parseFloat(ma50).toFixed(2);
-            document.getElementById('twdRate').value = parseFloat(twdRate).toFixed(2);
-            document.getElementById('vixValue').innerText = parseFloat(vix).toFixed(2);
+            document.getElementById('sheetPrice').innerText = formatValue(sheetPrice);
+            formatInput(document.getElementById('high20'), high20);
+            formatInput(document.getElementById('ma20'), ma20);
+            formatInput(document.getElementById('ma50'), ma50);
+            formatInput(document.getElementById('twdRate'), twdRate);
+            document.getElementById('vixValue').innerText = formatValue(vix);
             
             const drawdown = high20 > 0 ? ((sheetPrice - high20) / high20) * 100 : 0;
-            document.getElementById('drawdown').innerText = `${drawdown.toFixed(2)}%`;
+            document.getElementById('drawdown').innerText = high20 > 0 ? `${drawdown.toFixed(2)}%` : '---';
 
             const vixStatus = document.getElementById('vixStatus');
             if (vix > 0) {
@@ -306,29 +324,38 @@
                     statusEl.className = "font-bold text-rose-500";
                 }
             }
-            if (ma20 > 0) updateMAStatus('ma20', sheetPrice, ma20, '月線');
-            if (ma50 > 0) updateMAStatus('ma50', sheetPrice, ma50, '季線');
+
+            if (sheetPrice > 0 && ma20 > 0) updateMAStatus('ma20', sheetPrice, ma20, '月線');
+            if (sheetPrice > 0 && ma50 > 0) updateMAStatus('ma50', sheetPrice, ma50, '季線');
             
             config.supportLevels.forEach(level => {
                 const targetPrice = high20 * (1 - level.drop);
-                document.getElementById(`${level.id}Price`).innerText = `$${targetPrice.toFixed(2)}`;
+                const priceEl = document.getElementById(`${level.id}Price`);
                 const distEl = document.getElementById(`${level.id}Dist`);
                 const barEl = document.getElementById(`${level.id}Bar`);
-                const diff = sheetPrice - targetPrice;
                 
-                if (diff <= 0 && high20 > 0) {
-                    distEl.innerText = "✅ 已到達買點！";
-                    distEl.className = "text-sm font-bold text-emerald-400";
-                    barEl.style.width = "100%";
+                if (high20 > 0) {
+                    priceEl.innerText = `$${targetPrice.toFixed(2)}`;
+                    const diff = sheetPrice - targetPrice;
+                    
+                    if (diff <= 0) {
+                        distEl.innerText = "✅ 已到達買點！";
+                        distEl.className = "text-sm font-bold text-emerald-400";
+                        barEl.style.width = "100%";
+                    } else {
+                        const diffPct = sheetPrice > 0 ? (diff / sheetPrice) * 100 : 0;
+                        distEl.innerText = `距離: ${diffPct.toFixed(2)}%`;
+                        distEl.className = "text-sm text-slate-400";
+                        const totalDropRange = high20 - targetPrice;
+                        const currentDrop = high20 - sheetPrice;
+                        let fillPct = (totalDropRange > 0) ? (currentDrop / totalDropRange) * 100 : 0;
+                        fillPct = Math.max(0, Math.min(100, fillPct));
+                        barEl.style.width = `${fillPct}%`;
+                    }
                 } else {
-                    const diffPct = sheetPrice > 0 ? (diff / sheetPrice) * 100 : 0;
-                    distEl.innerText = `距離: ${diffPct.toFixed(2)}%`;
-                    distEl.className = "text-sm text-slate-400";
-                    const totalDropRange = high20 - targetPrice;
-                    const currentDrop = high20 - sheetPrice;
-                    let fillPct = (totalDropRange > 0) ? (currentDrop / totalDropRange) * 100 : 0;
-                    fillPct = Math.max(0, Math.min(100, fillPct));
-                    barEl.style.width = `${fillPct}%`;
+                    priceEl.innerText = '$---';
+                    distEl.innerText = `距離: ---`;
+                    barEl.style.width = "0%";
                 }
             });
 
@@ -348,16 +375,20 @@
             const s2Price = high20 * (1 - config.supportLevels[1].drop);
             const s1Price = high20 * (1 - config.supportLevels[0].drop);
 
-            if (sheetPrice <= s3Price && s3Price > 0) {
+            if (sheetPrice > 0 && s3Price > 0 && sheetPrice <= s3Price) {
                 if(alertStates.s3) alertStates.s3.className = "p-4 rounded-lg border border-rose-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-rose-900/40";
-            } else if (sheetPrice <= s2Price && s2Price > 0) {
+            } else if (sheetPrice > 0 && s2Price > 0 && sheetPrice <= s2Price) {
                 if(alertStates.s2) alertStates.s2.className = "p-4 rounded-lg border border-amber-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-amber-900/40";
-            } else if (sheetPrice <= s1Price && s1Price > 0) {
+            } else if (sheetPrice > 0 && s1Price > 0 && sheetPrice <= s1Price) {
                 if(alertStates.s1) alertStates.s1.className = "p-4 rounded-lg border border-emerald-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-emerald-900/40";
             } else {
                 if (alertStates.wait) {
                     alertStates.wait.className = "p-4 rounded-lg border border-slate-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100";
-                    alertTextWait.innerText = s1Price > 0 ? `🎯 獵物尚未進入射程！距離最近買點還有 ${(sheetPrice - s1Price).toFixed(2)} 美元，請耐心等待...` : '等待市場數據載入...';
+                    if (s1Price > 0 && sheetPrice > 0) {
+                         alertTextWait.innerText = `🎯 獵物尚未進入射程！距離最近買點還有 ${(sheetPrice - s1Price).toFixed(2)} 美元，請耐心等待...`;
+                    } else {
+                        alertTextWait.innerText = '等待市場數據載入...';
+                    }
                 }
             }
             
@@ -432,8 +463,15 @@
                       }
                     });
 
-                    if (Object.keys(data).length === 0) {
-                        throw new Error("解析後的資料為空，可能是 Google Sheet 正在載入中。");
+                    // 強化版：檢查所有必要欄位是否存在
+                    const requiredKeys = [
+                        'VOO 目前價格', 'USD/TWD 匯率', 'VOO 月線 (MA20)',
+                        'VOO 季線 (MA50)', '近 20 日高點', '市場恐慌指標(VIX)'
+                    ];
+                    const missingKeys = requiredKeys.filter(key => !(key in data));
+
+                    if (missingKeys.length > 0) {
+                        throw new Error(`資料不完整，缺少關鍵欄位: ${missingKeys.join(', ')}。可能是 G-Sheet 正在載入。`);
                     }
 
                     // 成功
