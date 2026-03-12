@@ -387,7 +387,7 @@
         }
 
         async function fetchGoogleSheetData(force = false) {
-            const cacheKey = 'voo_dashboard_sheet_data_v2'; // 修正：更換 key 以強迫清除之前錯誤的快取
+            const cacheKey = 'voo_dashboard_sheet_data_v2';
             const cached = localStorage.getItem(cacheKey);
             
             if (cached && !force) {
@@ -398,57 +398,68 @@
                 }
             }
 
-            try {
-                const url = `${config.googleSheetUrl}&_t=${Date.now()}`;
-                const res = await fetch(url);
-                if (!res.ok) throw new Error(`Google Sheet fetch error: ${res.statusText}`);
-                
-                const csvText = await res.text();
-                
-                // 檢查是否回傳了 HTML (代表 Google 表單可能未設為「公開到網路」)
-                if (csvText.trim().toLowerCase().startsWith('<!doctype html>')) {
-                     throw new Error("取得 HTML 網頁而非 CSV，請確認你的 Google Sheet 有正確使用『發布到網路 -> 格式選 CSV』。");
-                }
+            const maxRetries = 2; // 總共嘗試 2 次
+            const retryDelay = 5000; // 延遲 5 秒
 
-                // 修正：使用正規表達式支援所有換行格式 (\r\n 或 \n)
-                const rows = csvText.trim().split(/\r?\n/);
-                const data = {};
-                
-                rows.forEach((row, index) => {
-                  const parts = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                  if (parts.length >= 2) {
-                    const key = parts[0].trim().replace(/^"|"$/g, '');
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    const url = `${config.googleSheetUrl}&_t=${Date.now()}`;
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error(`Google Sheet fetch error: ${res.statusText}`);
                     
-                    // 修正：去除可能包含的 '$', ',', '%' 以及空白，確保能被正確解析為數字
-                    const rawValue = parts[1].trim().replace(/^"|"$/g, '');
-                    const numericString = rawValue.replace(/[^0-9.-]/g, ''); 
-                    const value = parseFloat(numericString);
+                    const csvText = await res.text();
                     
-                    if (key && !isNaN(value)) {
-                      data[key] = value;
-                    } else if (key) {
-                       console.warn(`無法解析第 ${index + 1} 行的數值 [${key}]:`, rawValue);
+                    if (csvText.trim().toLowerCase().startsWith('<!doctype html>')) {
+                         throw new Error("取得 HTML 網頁而非 CSV，請確認你的 Google Sheet 有正確使用『發布到網路 -> 格式選 CSV』。");
                     }
-                  }
-                });
 
-                if (Object.keys(data).length === 0) {
-                    throw new Error("解析後的資料為空，請檢查 Google Sheet 格式。");
-                }
+                    const rows = csvText.trim().split(/\r?\n/);
+                    const data = {};
+                    
+                    rows.forEach((row, index) => {
+                      const parts = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                      if (parts.length >= 2) {
+                        const key = parts[0].trim().replace(/^"|"$/g, '');
+                        const rawValue = parts[1].trim().replace(/^"|"$/g, '');
+                        const numericString = rawValue.replace(/[^0-9.-]/g, ''); 
+                        const value = parseFloat(numericString);
+                        
+                        if (key && !isNaN(value)) {
+                          data[key] = value;
+                        } else if (key) {
+                           console.warn(`無法解析第 ${index + 1} 行的數值 [${key}]:`, rawValue);
+                        }
+                      }
+                    });
 
-                state.sheetData = data;
-                localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
-                return true;
-            } catch(e) {
-                console.error("Fetch Google Sheet Data Error:", e);
-                // 失敗時若有舊快取則頂著用
-                if (cached) {
-                    console.warn("使用舊有快取資料...");
-                    state.sheetData = JSON.parse(cached).data;
+                    if (Object.keys(data).length === 0) {
+                        throw new Error("解析後的資料為空，可能是 Google Sheet 正在載入中。");
+                    }
+
+                    // 成功
+                    state.sheetData = data;
+                    localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
+                    console.log(`在第 ${attempt} 次嘗試成功獲取 Google Sheet 資料。`);
                     return true;
+
+                } catch(e) {
+                    console.error(`第 ${attempt} 次嘗試失敗: ${e.message}`);
+                    if (attempt < maxRetries) {
+                        console.log(`等待 ${retryDelay / 1000} 秒後重試...`);
+                        await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    }
                 }
-                return false;
             }
+
+            // 所有重試都失敗
+            console.error("所有獲取 Google Sheet 資料的嘗試都失敗了。");
+            if (cached) {
+                console.warn("使用舊有快取資料...");
+                state.sheetData = JSON.parse(cached).data;
+                return true; // 因為有舊資料可用，所以仍然回傳 true
+            }
+
+            return false; // 完全沒有任何資料
         }
         
         async function fetchAllData(isManual = false) {
