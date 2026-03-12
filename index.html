@@ -38,6 +38,15 @@
 <body class="min-h-screen p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto space-y-6">
+
+        <!-- CORS Proxy Activation -->
+        <div id="cors-activation" class="glass-card p-4 mb-6 border border-amber-500/50 bg-amber-900/20 text-center">
+            <p class="font-bold text-amber-300">首次使用，請先啟用 CORS 代理服務：</p>
+            <p class="text-sm text-slate-300 mt-2">點擊下方按鈕，並在跳轉後的頁面點擊 <span class="font-bold text-white">"Request temporary access to the demo server"</span> 按鈕，然後再重新整理本頁面。</p>
+            <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" onclick="document.getElementById('cors-activation').style.display='none';" class="mt-4 inline-block bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded transition-colors">
+                前往啟用
+            </a>
+        </div>
         
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center pb-4 border-b border-slate-700">
@@ -399,7 +408,7 @@
             const dot = document.getElementById('statusDot');
             dot.classList.add('pulse-dot');
             try {
-                const url = `https://finnhub.io/api/v1/quote?symbol=VOO&token=${apiKeys.finnhub}&_t=${Date.now()}`;
+                const url = `https://finnhub.io/api/v1/quote?symbol=VOO&token=${apiKeys.finnhub}&_t=${Date.now()}`; 
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`Finnhub API Error: ${res.statusText}`);
                 const data = await res.json();
@@ -422,7 +431,7 @@
         
         async function fetchHistoricalData() {
             try {
-                const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=VOO&outputsize=compact&apikey=${apiKeys.alphaVantage}&_t=${Date.now()}`;
+                const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=VOO&outputsize=compact&apikey=${apiKeys.alphaVantage}&_t=${Date.now()}`; 
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`AlphaVantage API Error: ${res.statusText}`);
                 const data = await res.json();
@@ -443,13 +452,11 @@
 
         async function fetchGoogleSheetData() {
             try {
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiKeys.googleSheet)}`;
+                const proxyUrl = `https://cors-anywhere.herokuapp.com/${apiKeys.googleSheet}`; 
                 const res = await fetch(`${proxyUrl}&_t=${Date.now()}`);
                 if (!res.ok) throw new Error(`Google Sheet fetch error: ${res.statusText}`);
                 
-                const proxiedData = await res.json();
-                const csvText = proxiedData.contents;
-
+                const csvText = await res.text();
                 const rows = csvText.split('\n');
                 const vixRow = rows[0].split(',');
                 const twdRow = rows[1].split(',');
@@ -462,6 +469,9 @@
                 }
             } catch(e) {
                 console.error("Fetch Google Sheet Data Error:", e);
+                // Show activation message if fetch fails
+                const activationBox = document.getElementById('cors-activation');
+                if (activationBox) activationBox.style.display = 'block';
             }
         }
         
@@ -488,6 +498,7 @@
         }
         
         window.addEventListener('load', () => {
+            document.getElementById('cors-activation').style.display = 'none'; // Hide by default
             calculateAndUpdateUI();
             fetchAllData(true);
             
