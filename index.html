@@ -34,6 +34,15 @@
             0%, 100% { opacity: 1; }
             50% { opacity: .5; }
         }
+
+        /* Loading animation for the refresh button's icon */
+        .is-loading svg {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
@@ -55,7 +64,7 @@
                     <span id="updateTime" class="text-sm text-slate-300 transition-all">準備連線...</span>
                 </div>
                 <button id="refreshBtn" onclick="fetchAllData(true)" class="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-all flex items-center justify-center" title="強制更新">
-                    <i id="refreshIcon" data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
                 </button>
             </div>
         </header>
@@ -396,9 +405,10 @@
             refreshIcons();
         }
 
-        async function fetchVooQuote() {
+        async function fetchVooQuote(isManualRefresh = false) {
             const dot = document.getElementById('statusDot');
-            dot.classList.add('pulse-dot');
+            if (isManualRefresh) dot.classList.add('pulse-dot');
+            
             let isSuccess = false;
             try {
                 const url = `https://finnhub.io/api/v1/quote?symbol=VOO&token=${apiKeys.finnhub}&_t=${Date.now()}`;
@@ -413,7 +423,7 @@
             } catch (e) {
                 console.error("Fetch VOO Quote Error:", e);
             } finally {
-                dot.classList.remove('pulse-dot');
+                if (isManualRefresh) dot.classList.remove('pulse-dot');
                 return isSuccess;
             }
         }
@@ -463,16 +473,15 @@
         
         async function fetchAllData(isManual = false) {
              const refreshBtn = document.getElementById('refreshBtn');
-             const refreshIcon = document.getElementById('refreshIcon'); 
              const dot = document.getElementById('statusDot');
 
-             if(isManual && refreshIcon) { 
-                refreshIcon.classList.add('animate-spin');
+             if(isManual) {
+                refreshBtn.classList.add('is-loading');
                 refreshBtn.disabled = true;
              }
             
             const results = await Promise.all([
-                fetchVooQuote(),
+                fetchVooQuote(isManual),
                 fetchHistoricalData(),
                 fetchGoogleSheetData()
             ]);
@@ -490,8 +499,8 @@
             calculateAndUpdateUI();
             document.getElementById('updateTime').innerText = `最後更新: ${new Date().toLocaleTimeString()}`;
 
-            if(isManual && refreshIcon) { 
-                refreshIcon.classList.remove('animate-spin');
+            if(isManual) {
+                refreshBtn.classList.remove('is-loading');
                 refreshBtn.disabled = false;
             }
         }
