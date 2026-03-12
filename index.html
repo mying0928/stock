@@ -393,21 +393,39 @@
                 if (!res.ok) throw new Error(`Google Sheet fetch error: ${res.statusText}`);
                 
                 const csvText = await res.text();
-                const rows = csvText.trim().split('\n').map(row => row.split(','));
+                const rows = csvText.trim().split('\n');
                 const data = {};
-                rows.forEach(row => {
-                  if (row.length >= 2) {
-                    const key = row[0].trim();
-                    const value = parseFloat(row[1]);
+                rows.forEach((row, index) => {
+                  // Split by comma, but not if it's inside quotes (basic handling)
+                  const parts = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                  if (parts.length >= 2) {
+                    const key = parts[0].trim().replace(/^"|"$/g, '');
+                    // Clean value: remove quotes, percentages, and then parse
+                    const valueString = parts[1].trim().replace(/"/g, '').replace(/%/g, '');
+                    const value = parseFloat(valueString);
+                    
                     if (key && !isNaN(value)) {
                       data[key] = value;
+                    } else {
+                       console.warn(`Could not parse row ${index + 1}:`, row);
                     }
                   }
                 });
+
+                if (Object.keys(data).length === 0) {
+                    throw new Error("Parsed data from Google Sheet is empty.");
+                }
+
                 state.sheetData = data;
                 localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
             } catch(e) {
                 console.error("Fetch Google Sheet Data Error:", e);
+                // Attempt to use cached data as a fallback if fetching fails
+                if (cached) {
+                    console.warn("Using stale cache due to fetch error.");
+                    state.sheetData = JSON.parse(cached).data;
+                    return true; // Still a success for the UI, but with old data
+                }
                 return false;
             }
             return true;
