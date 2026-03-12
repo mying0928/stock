@@ -41,7 +41,7 @@
                     <i data-lucide="line-chart" class="text-blue-500 w-8 h-8"></i>
                     VOO 戰術監控儀表板
                 </h1>
-                <p class="text-slate-400 text-sm mt-1">依據 20 日高點動態計算回撤與建倉支撐位</p>
+                <p class="text-slate-400 text-sm mt-1">📈 依據 20 日高點，動態計算回撤與建倉支撐位！</p>
             </div>
             <div class="mt-4 md:mt-0 flex items-center gap-4">
                 <div class="flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-full border border-slate-600">
@@ -57,7 +57,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="zap" class="w-16 h-16"></i></div>
-                <h3 class="text-slate-400 text-sm font-medium">VOO 即時價格 (30秒更新)</h3>
+                <h3 class="text-slate-400 text-sm font-medium">VOO 即時價格 (盤中參考)</h3>
                 <div class="mt-2 flex items-baseline gap-2">
                     <span id="realtimePrice" class="text-4xl font-bold text-white">0.00</span>
                     <span class="text-lg text-slate-400">USD</span>
@@ -75,7 +75,7 @@
                     <span id="sheetPrice" class="text-4xl font-bold text-white">0.00</span>
                      <span class="text-lg text-slate-400">USD</span>
                 </div>
-                 <div class="mt-2 text-sm text-slate-400">所有計算以此為準</div>
+                 <div class="mt-2 text-sm text-slate-400">📊 所有策略計算都以此為準</div>
             </div>
 
             <div class="glass-card p-5 relative overflow-hidden">
@@ -84,11 +84,11 @@
                 <div class="mt-2 flex items-baseline gap-2">
                     <span id="drawdown" class="text-4xl font-bold text-rose-500">0.00%</span>
                 </div>
-                <div class="mt-2 text-sm text-slate-400">距 20 日高點回測幅度</div>
+                <div class="mt-2 text-sm text-slate-400">🎯 已從 20 日高點回跌多少？</div>
             </div>
 
             <div class="glass-card p-5 relative overflow-hidden">
-                <h3 class="text-slate-400 text-sm font-medium">市場恐慌指標 (VIX)</h3>
+                <h3 class="text-slate-400 text-sm font-medium">市場恐慌指數 (VIX)</h3>
                 <div class="mt-2 flex items-baseline gap-2">
                     <span id="vixValue" class="text-3xl font-bold">0.00</span>
                 </div>
@@ -102,31 +102,32 @@
                 <div class="glass-card p-6">
                     <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
                         <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i>
-                        計算基準 (Google Sheet)
+                        核心數據基準 (來源: G-Sheet)
                     </h2>
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1">近 20 日高點 (用來算跌幾%)</label>
+                            <label class="block text-sm text-slate-400 mb-1">近 20 日高點 (回撤計算基準)</label>
                             <div class="relative"><span class="absolute left-3 top-2.5 text-slate-500">$</span><input type="number" id="high20" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4" readonly></div>
                         </div>
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1">VOO 月線 (MA20) - 短線成本</label>
+                            <label class="block text-sm text-slate-400 mb-1">短期趨勢 ⇢ VOO 月線 (MA20)</label>
                             <div class="relative"><span class="absolute left-3 top-2.5 text-slate-500">$</span><input type="number" id="ma20" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4" readonly></div>
                         </div>
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1">VOO 季線 (MA50) - 中線支撐</label>
+                            <label class="block text-sm text-slate-400 mb-1">中期趨勢 ⇢ VOO 季線 (MA50)</label>
                             <div class="relative"><span class="absolute left-3 top-2.5 text-slate-500">$</span><input type="number" id="ma50" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4" readonly></div>
                         </div>
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1">USD/TWD 匯率</label>
+                            <label class="block text-sm text-slate-400 mb-1">換匯參考 ⇢ USD/TWD 匯率</label>
                             <div class="relative"><span class="absolute left-3 top-2.5 text-slate-500">$</span><input type="number" id="twdRate" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4" readonly></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="glass-card p-6">
-                    <h2 class="text-lg font-bold mb-4">趨勢狀態</h2>
+                    <h2 class="text-lg font-bold mb-4">趨勢儀表板 🚦</h2>
+                    <p class="text-sm text-slate-400 -mt-2 mb-4">判斷目前股價相對於市場平均成本的強弱。</p>
                     <div class="space-y-4">
                         <div class="flex justify-between items-center p-3 rounded-lg bg-slate-900/50 border border-slate-700" id="ma20StatusBox">
                             <span class="text-slate-300">對比月線 (MA20)</span>
@@ -144,7 +145,7 @@
                 <div class="glass-card p-6 h-full">
                     <h2 class="text-xl font-bold mb-6 flex items-center gap-2 text-white">
                         <i data-lucide="target" class="w-6 h-6 text-emerald-500"></i>
-                        進場策略：支撐買點追蹤
+                        🏹 進場獵殺：三階段買點追蹤
                     </h2>
                     <div class="space-y-8">
                         <!-- Levels will be injected here -->
@@ -169,9 +170,9 @@
             googleSheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsKINCRk0uXPgo0P6Zmof1ib2HBdep_130-kXV4Qxuo83HpDbWgbtytDKg90P0vngP8kn-Skg-xgzx/pub?gid=1414034082&single=true&output=csv',
             cacheDuration: 20 * 60 * 1000, // 20 minutes
             supportLevels: [
-                { name: '初階買點 (支撐一)', drop: 0.04, description: '適合「首批試單」的價位', color: 'emerald', id: 's1' },
-                { name: '強烈買點 (支撐二)', drop: 0.05, description: '適合「重兵加碼」放大資金', color: 'amber', id: 's2' },
-                { name: '極限特價 (支撐三)', drop: 0.07, description: '極端行情才會出現的「絕地大特價」', color: 'rose', id: 's3' }
+                { name: '初階買點 (支撐一)', drop: 0.04, description: '第一步：投入部分資金「試水溫」的價位。', color: 'emerald', id: 's1' },
+                { name: '強烈買點 (支撐二)', drop: 0.05, description: '關鍵時刻：考慮「放大資金」積極進攻！', color: 'amber', id: 's2' },
+                { name: '極限特價 (支撐三)', drop: 0.07, description: '史詩級特價：市場恐慌下的「絕地反攻」機會！', color: 'rose', id: 's3' }
             ]
         };
 
@@ -182,7 +183,7 @@
         };
 
         function renderSupportLevels() {
-            const container = document.querySelector('.lg\\:col-span-2 .space-y-8');
+            const container = document.querySelector('.lg\:col-span-2 .space-y-8');
             let html = '';
             config.supportLevels.forEach(level => {
                 html += `
@@ -317,7 +318,7 @@
                 text.innerText = `已觸發 ${config.supportLevels[0].drop*100}% 回檔，適合進行首批試單建倉。`;
             } else {
                 title.innerText = "👀 觀察等待中";
-                text.innerText = s1Price > 0 ? `距離最近買點還有 ${(sheetPrice - s1Price).toFixed(2)} 美元。` : '等待市場數據載入...';
+                text.innerText = s1Price > 0 ? `🎯 獵物尚未進入射程！距離最近買點還有 ${(sheetPrice - s1Price).toFixed(2)} 美元，請耐心等待...` : '等待市場數據載入...';
             }
             
             lucide.createIcons();
