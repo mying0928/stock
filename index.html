@@ -153,9 +153,11 @@
                         <i data-lucide="target" class="w-6 h-6 text-emerald-500"></i>
                         🏹 進場獵殺：三階段買點追蹤
                     </h2>
+                    
                     <div class="space-y-8">
                         <!-- Levels will be injected here -->
                     </div>
+                    
                     <div class="space-y-4 mt-8">
                         <!-- State: Wait -->
                         <div id="alertStateWait" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
@@ -217,6 +219,7 @@
 
         function renderSupportLevels() {
             const container = document.querySelector('.lg\:col-span-2 .space-y-8');
+            if (!container) return; // Prevent error if container is missing
             let html = '';
             config.supportLevels.forEach(level => {
                 html += `
@@ -320,7 +323,7 @@
                     distEl.className = "text-sm font-bold text-emerald-400";
                     barEl.style.width = "100%";
                 } else {
-                    const diffPct = sheetPrice > 0 ? (diff / sheetPrice) * 100 : 0;
+                    const diffPct = sheetPrice > 0 ? ((diff / sheetPrice) * 100) : 0;
                     distEl.innerText = `距離: ${diffPct.toFixed(2)}%`;
                     distEl.className = "text-sm text-slate-400";
                     const totalDropRange = high20 - targetPrice;
@@ -331,6 +334,7 @@
                 }
             });
 
+            // Update 4-state alerts
             const alertStates = {
                 wait: document.getElementById('alertStateWait'),
                 s1: document.getElementById('alertStateS1'),
