@@ -21,35 +21,20 @@
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
-        .pulse-dot {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
-
-        /* Loading animation for the refresh button's icon */
-        .is-loading svg {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .is-loading svg { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center pb-4 border-b border-slate-700">
             <div>
                 <h1 class="text-3xl font-bold text-white flex items-center gap-3">
@@ -69,14 +54,12 @@
             </div>
         </header>
 
-        <!-- Top Metrics Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Current Price -->
             <div class="glass-card p-5 relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="dollar-sign" class="w-16 h-16"></i></div>
-                <h3 class="text-slate-400 text-sm font-medium">VOO 目前價格 (Finnhub)</h3>
+                <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="zap" class="w-16 h-16"></i></div>
+                <h3 class="text-slate-400 text-sm font-medium">VOO 即時價格 (30秒更新)</h3>
                 <div class="mt-2 flex items-baseline gap-2">
-                    <span id="currentPrice" class="text-4xl font-bold text-white">0.00</span>
+                    <span id="realtimePrice" class="text-4xl font-bold text-white">0.00</span>
                     <span class="text-lg text-slate-400">USD</span>
                 </div>
                 <div class="mt-2 text-sm flex items-center gap-1" id="priceChangeContainer">
@@ -84,8 +67,17 @@
                     <span id="priceChange">0.00%</span>
                 </div>
             </div>
+            
+            <div class="glass-card p-5 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="sheet" class="w-16 h-16"></i></div>
+                <h3 class="text-slate-400 text-sm font-medium">VOO 基準價格 (Google Sheet)</h3>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="sheetPrice" class="text-4xl font-bold text-white">0.00</span>
+                     <span class="text-lg text-slate-400">USD</span>
+                </div>
+                 <div class="mt-2 text-sm text-slate-400">所有計算以此為準</div>
+            </div>
 
-            <!-- Drawdown -->
             <div class="glass-card p-5 relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="activity" class="w-16 h-16"></i></div>
                 <h3 class="text-slate-400 text-sm font-medium">動態回撤 (Drawdown)</h3>
@@ -95,76 +87,44 @@
                 <div class="mt-2 text-sm text-slate-400">距 20 日高點回測幅度</div>
             </div>
 
-            <!-- VIX -->
             <div class="glass-card p-5 relative overflow-hidden">
-                <h3 class="text-slate-400 text-sm font-medium">市場恐慌指標 (Google)</h3>
+                <h3 class="text-slate-400 text-sm font-medium">市場恐慌指標 (VIX)</h3>
                 <div class="mt-2 flex items-baseline gap-2">
-                    <input type="number" id="vixInput" value="0.00" class="text-3xl font-bold bg-transparent w-32 border-b border-dashed border-slate-500 focus:outline-none focus:border-blue-500 transition-colors" readonly>
+                    <span id="vixValue" class="text-3xl font-bold">0.00</span>
                 </div>
                 <div id="vixStatus" class="mt-2 text-sm font-medium">等待資料...</div>
             </div>
-
-            <!-- TWD Rate -->
-            <div class="glass-card p-5 relative overflow-hidden">
-                <h3 class="text-slate-400 text-sm font-medium">USD/TWD 匯率 (Google)</h3>
-                <div class="mt-2 flex items-baseline gap-2">
-                    <input type="number" id="twdInput" value="0.00" step="0.01" class="text-3xl font-bold bg-transparent w-32 border-b border-dashed border-slate-500 focus:outline-none focus:border-blue-500 transition-colors" readonly>
-                </div>
-                <div class="mt-2 text-sm text-slate-400">買進成本估算基準</div>
-            </div>
         </div>
 
-        <!-- Main Content Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Left Column: Settings & MAs -->
             <div class="space-y-6">
-                <!-- Parameters Card -->
                 <div class="glass-card p-6">
                     <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
                         <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i>
-                        計算基準設定 (AlphaVantage)
+                        計算基準 (Google Sheet)
                     </h2>
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1 flex justify-between items-center">
-                                近 20 日高點 (用來算跌幾%)
-                                <span class="text-[10px] bg-blue-900/50 text-blue-400 px-1.5 py-0.5 rounded">自動同步</span>
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-2.5 text-slate-500">$</span>
-                                <input type="number" id="high20" value="0.00" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4 text-white focus:outline-none focus:border-blue-500" readonly>
-                            </div>
+                            <label class="block text-sm text-slate-400 mb-1">近 20 日高點 (用來算跌幾%)</label>
+                            <div class="relative"><span class="absolute left-3 top-2.5 text-slate-500">$</span><input type="number" id="high20" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4" readonly></div>
                         </div>
-
-                        <hr class="border-slate-700">
-
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1 flex justify-between items-center">
-                                VOO 月線 (MA20) - 短線成本
-                                <span class="text-[10px] bg-blue-900/50 text-blue-400 px-1.5 py-0.5 rounded">自動同步</span>
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-2.5 text-slate-500">$</span>
-                                <input type="number" id="ma20" value="0.00" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4 text-white focus:outline-none focus:border-blue-500" readonly>
-                            </div>
+                            <label class="block text-sm text-slate-400 mb-1">VOO 月線 (MA20) - 短線成本</label>
+                            <div class="relative"><span class="absolute left-3 top-2.5 text-slate-500">$</span><input type="number" id="ma20" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4" readonly></div>
                         </div>
-
                         <div>
-                            <label class="block text-sm text-slate-400 mb-1 flex justify-between items-center">
-                                VOO 季線 (MA50) - 中線支撐
-                                <span class="text-[10px] bg-blue-900/50 text-blue-400 px-1.5 py-0.5 rounded">自動同步</span>
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-2.5 text-slate-500">$</span>
-                                <input type="number" id="ma50" value="0.00" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4 text-white focus:outline-none focus:border-blue-500" readonly>
-                            </div>
+                            <label class="block text-sm text-slate-400 mb-1">VOO 季線 (MA50) - 中線支撐</label>
+                            <div class="relative"><span class="absolute left-3 top-2.5 text-slate-500">$</span><input type="number" id="ma50" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4" readonly></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-1">USD/TWD 匯率</label>
+                            <div class="relative"><span class="absolute left-3 top-2.5 text-slate-500">$</span><input type="number" id="twdRate" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-8 pr-4" readonly></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Trend Status Card -->
                 <div class="glass-card p-6">
                     <h2 class="text-lg font-bold mb-4">趨勢狀態</h2>
                     <div class="space-y-4">
@@ -178,80 +138,17 @@
                         </div>
                     </div>
                 </div>
-                
             </div>
 
-            <!-- Right Column: Action Plan (Supports) -->
             <div class="lg:col-span-2 space-y-6">
                 <div class="glass-card p-6 h-full">
                     <h2 class="text-xl font-bold mb-6 flex items-center gap-2 text-white">
                         <i data-lucide="target" class="w-6 h-6 text-emerald-500"></i>
                         進場策略：支撐買點追蹤
                     </h2>
-
                     <div class="space-y-8">
-                        <!-- Support 1 -->
-                        <div class="relative">
-                            <div class="flex justify-between items-end mb-2">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                        初階買點 (支撐一)
-                                        <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">高點回檔 4%</span>
-                                    </h3>
-                                    <p class="text-sm text-slate-400 mt-1">適合「首批試單」的價位</p>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-2xl font-bold text-white" id="s1Price">$0.00</div>
-                                    <div class="text-sm" id="s1Dist">距離: 0.00%</div>
-                                </div>
-                            </div>
-                            <div class="h-3 w-full bg-slate-800 rounded-full overflow-hidden">
-                                <div id="s1Bar" class="h-full bg-emerald-500 transition-all duration-500 w-0"></div>
-                            </div>
-                        </div>
-
-                        <!-- Support 2 -->
-                        <div class="relative">
-                            <div class="flex justify-between items-end mb-2">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                        強烈買點 (支撐二)
-                                        <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">高點回檔 5%</span>
-                                    </h3>
-                                    <p class="text-sm text-slate-400 mt-1">適合「重兵加碼」放大資金</p>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-2xl font-bold text-white" id="s2Price">$0.00</div>
-                                    <div class="text-sm" id="s2Dist">距離: 0.00%</div>
-                                </div>
-                            </div>
-                            <div class="h-3 w-full bg-slate-800 rounded-full overflow-hidden">
-                                <div id="s2Bar" class="h-full bg-amber-500 transition-all duration-500 w-0"></div>
-                            </div>
-                        </div>
-
-                        <!-- Support 3 -->
-                        <div class="relative">
-                            <div class="flex justify-between items-end mb-2">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                        極限特價 (支撐三)
-                                        <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">高點回檔 7%</span>
-                                    </h3>
-                                    <p class="text-sm text-slate-400 mt-1">極端行情才會出現的「絕地大特價」</p>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-2xl font-bold text-white" id="s3Price">$0.00</div>
-                                    <div class="text-sm" id="s3Dist">距離: 0.00%</div>
-                                </div>
-                            </div>
-                            <div class="h-3 w-full bg-slate-800 rounded-full overflow-hidden shadow-[0_0_15px_rgba(225,29,72,0.2)]">
-                                <div id="s3Bar" class="h-full bg-rose-500 transition-all duration-500 w-0"></div>
-                            </div>
-                        </div>
-
+                        <!-- Levels will be injected here -->
                     </div>
-                    
                     <div id="actionAlert" class="mt-8 p-4 rounded-lg bg-slate-800 border border-slate-700 flex items-start gap-3 hidden">
                         <i data-lucide="bell-ring" class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5"></i>
                         <div>
@@ -259,245 +156,253 @@
                             <p class="text-slate-300 text-sm mt-1" id="alertText">目前尚無觸發任何買點。</p>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        function refreshIcons() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        }
+        lucide.createIcons();
 
-        const apiKeys = {
-            finnhub: 'd6p2ch1r01qk3chil2l0d6p2ch1r01qk3chil2lg',
-            alphaVantage: 'O5IR9DAKU34AEAXO',
-            googleSheet: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcONUK5TToEafbPNHFh7mhqD4i5i019iGJnWFWxXNGbnC6LX6IFn0ro5tpq0vllxsOZ13RVw1ghBmt/pub?gid=0&single=true&output=csv'
+        const config = {
+            finnhubToken: 'd6p2ch1r01qk3chil2l0d6p2ch1r01qk3chil2lg',
+            googleSheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQsKINCRk0uXPgo0P6Zmof1ib2HBdep_130-kXV4Qxuo83HpDbWgbtytDKg90P0vngP8kn-Skg-xgzx/pub?gid=1414034082&single=true&output=csv',
+            cacheDuration: 20 * 60 * 1000, // 20 minutes
+            supportLevels: [
+                { name: '初階買點 (支撐一)', drop: 0.04, description: '適合「首批試單」的價位', color: 'emerald', id: 's1' },
+                { name: '強烈買點 (支撐二)', drop: 0.05, description: '適合「重兵加碼」放大資金', color: 'amber', id: 's2' },
+                { name: '極限特價 (支撐三)', drop: 0.07, description: '極端行情才會出現的「絕地大特價」', color: 'rose', id: 's3' }
+            ]
         };
 
         let state = {
-            currentPrice: 0,
+            realtimePrice: 0,
             previousClose: 0,
-            high20: 0,
-            ma20: 0,
-            ma50: 0,
-            vix: 0,
-            twdRate: 0
+            sheetData: {}
         };
 
-        function calculateAndUpdateUI() {
-            const { currentPrice, previousClose, high20, ma20, ma50, vix, twdRate } = state;
+        function renderSupportLevels() {
+            const container = document.querySelector('.lg\:col-span-2 .space-y-8');
+            let html = '';
+            config.supportLevels.forEach(level => {
+                html += `
+                    <div class="relative">
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    ${level.name}
+                                    <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">高點回檔 ${level.drop * 100}%</span>
+                                </h3>
+                                <p class="text-sm text-slate-400 mt-1">${level.description}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-white" id="${level.id}Price">$0.00</div>
+                                <div class="text-sm" id="${level.id}Dist">距離: 0.00%</div>
+                            </div>
+                        </div>
+                        <div class="h-3 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div id="${level.id}Bar" class="h-full bg-${level.color}-500 transition-all duration-500 w-0"></div>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        }
 
-            document.getElementById('currentPrice').innerText = currentPrice.toFixed(2);
-            document.getElementById('vixInput').value = vix.toFixed(2);
-            document.getElementById('twdInput').value = twdRate.toFixed(2);
-            document.getElementById('high20').value = high20.toFixed(2);
-            document.getElementById('ma20').value = ma20.toFixed(2);
-            document.getElementById('ma50').value = ma50.toFixed(2);
+        function updateUI() {
+            const { realtimePrice, previousClose, sheetData } = state;
+            const {
+                'VOO 目前價格': sheetPrice = 0,
+                '近 20 日高點': high20 = 0,
+                'VOO 月線 (MA20)': ma20 = 0,
+                'VOO 季線 (MA50)': ma50 = 0,
+                '市場恐慌指標 (VIX)': vix = 0,
+                'USD/TWD 匯率': twdRate = 0
+            } = sheetData;
             
-            const changePct = previousClose > 0 ? ((currentPrice - previousClose) / previousClose) * 100 : 0;
-            const drawdown = high20 > 0 ? ((currentPrice - high20) / high20) * 100 : 0;
-            document.getElementById('drawdown').innerText = drawdown.toFixed(2) + '%';
-            
+            // Realtime price display
+            document.getElementById('realtimePrice').innerText = realtimePrice.toFixed(2);
+            const changePct = previousClose > 0 ? ((realtimePrice - previousClose) / previousClose) * 100 : 0;
             const changeEl = document.getElementById('priceChange');
             const changeContainer = document.getElementById('priceChangeContainer');
             const iconWrapper = document.getElementById('priceChangeIconWrapper');
             if(changePct >= 0) {
-                changeEl.innerText = '+' + changePct.toFixed(2) + '%';
+                changeEl.innerText = `+${changePct.toFixed(2)}%`;
                 changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-emerald-500 font-bold";
                 iconWrapper.innerHTML = '<i data-lucide="trending-up" class="w-4 h-4"></i>';
             } else {
-                changeEl.innerText = changePct.toFixed(2) + '%';
+                changeEl.innerText = `${changePct.toFixed(2)}%`;
                 changeContainer.className = "mt-2 text-sm flex items-center gap-1 text-rose-500 font-bold";
                 iconWrapper.innerHTML = '<i data-lucide="trending-down" class="w-4 h-4"></i>';
             }
 
+            // Sheet data display
+            document.getElementById('sheetPrice').innerText = parseFloat(sheetPrice).toFixed(2);
+            document.getElementById('high20').value = parseFloat(high20).toFixed(2);
+            document.getElementById('ma20').value = parseFloat(ma20).toFixed(2);
+            document.getElementById('ma50').value = parseFloat(ma50).toFixed(2);
+            document.getElementById('twdRate').value = parseFloat(twdRate).toFixed(2);
+            document.getElementById('vixValue').innerText = parseFloat(vix).toFixed(2);
+            
+            const drawdown = high20 > 0 ? ((sheetPrice - high20) / high20) * 100 : 0;
+            document.getElementById('drawdown').innerText = `${drawdown.toFixed(2)}%`;
+
             const vixStatus = document.getElementById('vixStatus');
             if (vix > 0) {
                 if (vix >= 30) {
-                    vixStatus.innerText = "🚨 市場極度恐慌！撿便宜絕佳時機！";
+                    vixStatus.innerText = "🚨 市場極度恐慌！";
                     vixStatus.className = "mt-2 text-sm font-bold text-rose-500";
                 } else if (vix <= 20) {
-                    vixStatus.innerText = "✅ 市場平靜，適合定期定額";
+                    vixStatus.innerText = "✅ 市場情緒穩定";
                     vixStatus.className = "mt-2 text-sm font-medium text-emerald-500";
                 } else {
-                    vixStatus.innerText = "高於 30 代表市場恐慌，是撿便宜的時機";
-                    vixStatus.className = "mt-2 text-sm font-medium text-slate-400";
+                    vixStatus.innerText = "⚠️ 市場略為謹慎";
+                    vixStatus.className = "mt-2 text-sm font-medium text-amber-500";
                 }
             }
             
             function updateMAStatus(idPrefix, price, maPrice, name) {
-                const statusEl = document.getElementById(idPrefix + 'Status');
-                const boxEl = document.getElementById(idPrefix + 'StatusBox');
+                const statusEl = document.getElementById(`${idPrefix}Status`);
+                const boxEl = document.getElementById(`${idPrefix}StatusBox`);
                 if (price > maPrice) {
-                    statusEl.innerText = `站上${name} ($${maPrice.toFixed(2)})`;
+                    statusEl.innerText = `站上${name}`;
                     statusEl.className = "font-bold text-emerald-500";
-                    boxEl.className = "flex justify-between items-center p-3 rounded-lg bg-emerald-900/20 border border-emerald-800/50";
                 } else {
-                    statusEl.innerText = `跌破${name} ($${maPrice.toFixed(2)})`;
+                    statusEl.innerText = `跌破${name}`;
                     statusEl.className = "font-bold text-rose-500";
-                    boxEl.className = "flex justify-between items-center p-3 rounded-lg bg-rose-900/20 border border-rose-800/50";
                 }
             }
-            if (ma20 > 0) updateMAStatus('ma20', currentPrice, ma20, '月線');
-            if (ma50 > 0) updateMAStatus('ma50', currentPrice, ma50, '季線');
-
-            const s1 = high20 * 0.96;
-            const s2 = high20 * 0.95;
-            const s3 = high20 * 0.93;
-
-            function updateSupportLevel(idPrefix, price, targetPrice, high) {
-                document.getElementById(idPrefix + 'Price').innerText = '$' + targetPrice.toFixed(2);
-                const distEl = document.getElementById(idPrefix + 'Dist');
-                const barEl = document.getElementById(idPrefix + 'Bar');
-                const diff = price - targetPrice;
+            if (ma20 > 0) updateMAStatus('ma20', sheetPrice, ma20, '月線');
+            if (ma50 > 0) updateMAStatus('ma50', sheetPrice, ma50, '季線');
+            
+            config.supportLevels.forEach(level => {
+                const targetPrice = high20 * (1 - level.drop);
+                document.getElementById(`${level.id}Price`).innerText = `$${targetPrice.toFixed(2)}`;
+                const distEl = document.getElementById(`${level.id}Dist`);
+                const barEl = document.getElementById(`${level.id}Bar`);
+                const diff = sheetPrice - targetPrice;
                 
                 if (diff <= 0) {
                     distEl.innerText = "✅ 已到達買點！";
                     distEl.className = "text-sm font-bold text-emerald-400";
                     barEl.style.width = "100%";
-                    barEl.className = `h-full transition-all duration-500 w-full ${idPrefix === 's3' ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`;
                 } else {
-                    const diffPct = price > 0 ? (diff / price) * 100 : 0;
-                    distEl.innerText = `距離: ${diffPct.toFixed(2)}% ($${diff.toFixed(2)})`;
+                    const diffPct = sheetPrice > 0 ? (diff / sheetPrice) * 100 : 0;
+                    distEl.innerText = `距離: ${diffPct.toFixed(2)}%`;
                     distEl.className = "text-sm text-slate-400";
-                    const totalDropRange = high - targetPrice;
-                    const currentDrop = high - price;
+                    const totalDropRange = high20 - targetPrice;
+                    const currentDrop = high20 - sheetPrice;
                     let fillPct = (totalDropRange > 0) ? (currentDrop / totalDropRange) * 100 : 0;
-                    if (fillPct < 0) fillPct = 0;
-                    if (fillPct > 100) fillPct = 100;
-                    barEl.style.width = fillPct + "%";
-                    barEl.className = `h-full transition-all duration-500 ${idPrefix === 's1' ? 'bg-emerald-500' : idPrefix === 's2' ? 'bg-amber-500' : 'bg-rose-500'}`;
+                    fillPct = Math.max(0, Math.min(100, fillPct));
+                    barEl.style.width = `${fillPct}%`;
                 }
-            }
-            if (high20 > 0) {
-                updateSupportLevel('s1', currentPrice, s1, high20);
-                updateSupportLevel('s2', currentPrice, s2, high20);
-                updateSupportLevel('s3', currentPrice, s3, high20);
-            }
+            });
 
             const alertBox = document.getElementById('actionAlert');
             const title = document.getElementById('alertTitle');
             const text = document.getElementById('alertText');
             alertBox.classList.remove('hidden');
 
-            if (currentPrice <= s3 && s3 > 0) {
-                alertBox.className = "mt-8 p-4 rounded-lg bg-rose-900/40 border border-rose-500 flex items-start gap-3 animate-pulse";
-                title.innerText = "🚨 絕地大特價觸發！(跌幅 > 7%)";
-                text.innerText = "目前已到達極限支撐三，這是極端行情才會出現的價位，請把握難得的大跌加碼機會！";
-            } else if (currentPrice <= s2 && s2 > 0) {
-                alertBox.className = "mt-8 p-4 rounded-lg bg-amber-900/40 border border-amber-500 flex items-start gap-3";
-                title.innerText = "⚠️ 重兵加碼買點觸發！(跌幅 > 5%)";
-                text.innerText = "已跌破強烈支撐二，可考慮放大資金規模，執行第二波買進策略。";
-            } else if (currentPrice <= s1 && s1 > 0) {
-                alertBox.className = "mt-8 p-4 rounded-lg bg-emerald-900/40 border border-emerald-500 flex items-start gap-3";
-                title.innerText = "✅ 首批試單買點觸發！(跌幅 > 4%)";
-                text.innerText = "已到達初階支撐一，適合進行首批試單建倉，開始分批佈局。";
+            const s3Price = high20 * (1 - config.supportLevels[2].drop);
+            const s2Price = high20 * (1 - config.supportLevels[1].drop);
+            const s1Price = high20 * (1 - config.supportLevels[0].drop);
+
+            if (sheetPrice <= s3Price && s3Price > 0) {
+                 title.innerText = "🚨 絕地大特價觸發！";
+                 text.innerText = `已觸發 ${config.supportLevels[2].drop*100}% 回檔，可考慮執行最終批次買進。`;
+            } else if (sheetPrice <= s2Price && s2Price > 0) {
+                 title.innerText = "⚠️ 強烈買點觸發！";
+                 text.innerText = `已觸發 ${config.supportLevels[1].drop*100}% 回檔，可考慮放大資金規模。`;
+            } else if (sheetPrice <= s1Price && s1Price > 0) {
+                title.innerText = "✅ 初階買點觸發！";
+                text.innerText = `已觸發 ${config.supportLevels[0].drop*100}% 回檔，適合進行首批試單建倉。`;
             } else {
-                alertBox.className = "mt-8 p-4 rounded-lg bg-slate-800 border border-slate-700 flex items-start gap-3";
                 title.innerText = "👀 觀察等待中";
-                text.innerText = (s1 > 0) ? `目前距離最近的買單點還有 ${(currentPrice - s1).toFixed(2)} 美元。現階段回撤 ${drawdown.toFixed(2)}%，請耐心等待獵物落入網中。` : '等待市場數據載入...';
+                text.innerText = s1Price > 0 ? `距離最近買點還有 ${(sheetPrice - s1Price).toFixed(2)} 美元。` : '等待市場數據載入...';
             }
             
-            refreshIcons();
+            lucide.createIcons();
         }
 
-        async function fetchVooQuote(isManualRefresh = false) {
-            const dot = document.getElementById('statusDot');
-            if (isManualRefresh) dot.classList.add('pulse-dot');
-            
-            let isSuccess = false;
+        async function fetchVooQuote() {
             try {
-                const url = `https://finnhub.io/api/v1/quote?symbol=VOO&token=${apiKeys.finnhub}&_t=${Date.now()}`;
+                const url = `https://finnhub.io/api/v1/quote?symbol=VOO&token=${config.finnhubToken}&_t=${Date.now()}`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`Finnhub API Error: ${res.statusText}`);
                 const data = await res.json();
                 if (data.c != null && data.pc != null) {
-                    state.currentPrice = data.c;
+                    state.realtimePrice = data.c;
                     state.previousClose = data.pc;
-                    isSuccess = true;
                 }
             } catch (e) {
                 console.error("Fetch VOO Quote Error:", e);
-            } finally {
-                if (isManualRefresh) dot.classList.remove('pulse-dot');
-                return isSuccess;
+                return false;
             }
-        }
-        
-        async function fetchHistoricalData() {
-            try {
-                const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=VOO&outputsize=compact&apikey=${apiKeys.alphaVantage}&_t=${Date.now()}`;
-                const res = await fetch(url);
-                if (!res.ok) throw new Error(`AlphaVantage API Error: ${res.statusText}`);
-                const data = await res.json();
-                const timeSeries = data['Time Series (Daily)']
-                if (!timeSeries) throw new Error('AlphaVantage data format error, received: ' + JSON.stringify(data));
-
-                const dates = Object.keys(timeSeries);
-                const closes = dates.map(date => parseFloat(timeSeries[date]['4. close']));
-                const highs = dates.map(date => parseFloat(timeSeries[date]['2. high']));
-
-                state.ma20 = closes.slice(0, 20).reduce((a, b) => a + b, 0) / 20;
-                state.ma50 = closes.slice(0, 50).reduce((a, b) => a + b, 0) / 50;
-                state.high20 = Math.max(...highs.slice(0, 20));
-            } catch (e) {
-                console.error("Fetch Historical Data Error:", e);
-            }
+            return true;
         }
 
-        async function fetchGoogleSheetData() {
+        async function fetchGoogleSheetData(force = false) {
+            const cacheKey = 'googleSheetData';
+            const cached = localStorage.getItem(cacheKey);
+            if (cached && !force) {
+                const { timestamp, data } = JSON.parse(cached);
+                if (Date.now() - timestamp < config.cacheDuration) {
+                    state.sheetData = data;
+                    return true;
+                }
+            }
+
             try {
-                const url = `${apiKeys.googleSheet}&_t=${Date.now()}`;
+                const url = `${config.googleSheetUrl}&_t=${Date.now()}`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`Google Sheet fetch error: ${res.statusText}`);
                 
                 const csvText = await res.text();
-                const rows = csvText.split('\n');
-                const vixRow = rows[0].split(',');
-                const twdRow = rows[1].split(',');
-
-                if (vixRow[0].trim() === 'VIX' && !isNaN(parseFloat(vixRow[1]))) {
-                    state.vix = parseFloat(vixRow[1]);
-                }
-                if (twdRow[0].trim() === 'TWD' && !isNaN(parseFloat(twdRow[1]))) {
-                    state.twdRate = parseFloat(twdRow[1]);
-                }
+                const rows = csvText.trim().split('\n').map(row => row.split(','));
+                const data = {};
+                rows.forEach(row => {
+                  if (row.length >= 2) {
+                    const key = row[0].trim();
+                    const value = parseFloat(row[1]);
+                    if (key && !isNaN(value)) {
+                      data[key] = value;
+                    }
+                  }
+                });
+                state.sheetData = data;
+                localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data }));
             } catch(e) {
                 console.error("Fetch Google Sheet Data Error:", e);
+                return false;
             }
+            return true;
         }
         
         async function fetchAllData(isManual = false) {
              const refreshBtn = document.getElementById('refreshBtn');
              const dot = document.getElementById('statusDot');
+             const updateTimeEl = document.getElementById('updateTime');
 
              if(isManual) {
                 refreshBtn.classList.add('is-loading');
                 refreshBtn.disabled = true;
+                updateTimeEl.innerText = '更新中...';
              }
             
             const results = await Promise.all([
-                fetchVooQuote(isManual),
-                fetchHistoricalData(),
-                fetchGoogleSheetData()
+                fetchVooQuote(),
+                fetchGoogleSheetData(isManual)
             ]);
 
-            const isVooSuccess = results[0];
+            const [isVooSuccess, isSheetSuccess] = results;
 
-            if (isVooSuccess) {
-                dot.classList.remove('bg-yellow-500', 'bg-red-500');
-                dot.classList.add('bg-green-500');
+            if (isVooSuccess && isSheetSuccess) {
+                dot.className = 'w-3 h-3 rounded-full bg-green-500';
             } else {
-                dot.classList.remove('bg-yellow-500', 'bg-green-500');
-                dot.classList.add('bg-red-500');
+                dot.className = 'w-3 h-3 rounded-full bg-red-500';
             }
 
-            calculateAndUpdateUI();
-            document.getElementById('updateTime').innerText = `最後更新: ${new Date().toLocaleTimeString()}`;
+            updateUI();
+            updateTimeEl.innerText = `最後更新: ${new Date().toLocaleTimeString()}`;
 
             if(isManual) {
                 refreshBtn.classList.remove('is-loading');
@@ -506,13 +411,16 @@
         }
         
         window.addEventListener('load', () => {
+            renderSupportLevels();
             fetchAllData(true);
             
-            // Setup timers
-            setInterval(fetchVooQuote, 30 * 1000); 
-            setInterval(fetchGoogleSheetData, 15 * 60 * 1000);
+            setInterval(async () => {
+                await fetchVooQuote();
+                updateUI();
+            }, 30 * 1000); 
+            
+            setInterval(() => fetchAllData(false), 5 * 60 * 1000); // Check for fresh sheet data every 5 mins
         });
-
     </script>
 </body>
 </html>
