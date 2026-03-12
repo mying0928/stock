@@ -463,10 +463,10 @@
         
         async function fetchAllData(isManual = false) {
              const refreshBtn = document.getElementById('refreshBtn');
-             const refreshIcon = refreshBtn.querySelector('svg');
+             const refreshIcon = document.getElementById('refreshIcon'); 
              const dot = document.getElementById('statusDot');
 
-             if(isManual) {
+             if(isManual && refreshIcon) { 
                 refreshIcon.classList.add('animate-spin');
                 refreshBtn.disabled = true;
              }
@@ -490,7 +490,7 @@
             calculateAndUpdateUI();
             document.getElementById('updateTime').innerText = `最後更新: ${new Date().toLocaleTimeString()}`;
 
-            if(isManual) {
+            if(isManual && refreshIcon) { 
                 refreshIcon.classList.remove('animate-spin');
                 refreshBtn.disabled = false;
             }
