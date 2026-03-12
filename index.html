@@ -26,7 +26,7 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
         .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } } 
         .is-loading svg { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
@@ -162,29 +162,29 @@
                         <div id="alertStateWait" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                             <i data-lucide="glasses" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
-                                <h4 class="font-bold">👀 觀察等待中</h4>
-                                <p class="text-sm mt-1" id="alertTextWait">等待數據載入...</p>
+                                <h4 class="text-sm font-bold">👀 觀察等待中</h4>
+                                <p class="text-xs mt-1" id="alertTextWait">等待數據載入...</p>
                             </div>
                         </div>
                         <div id="alertStateS1" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                             <i data-lucide="shopping-cart" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
-                                <h4 class="font-bold">✅ 初階買點觸發！</h4>
-                                <p class="text-sm mt-1">已觸發 4% 回檔，適合進行首批試單建倉。</p>
+                                <h4 class="text-sm font-bold">✅ 初階買點觸發！</h4>
+                                <p class="text-xs mt-1">已觸發 4% 回檔，適合進行首批試單建倉。</p>
                             </div>
                         </div>
                         <div id="alertStateS2" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                             <i data-lucide="shopping-bag" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
-                                <h4 class="font-bold">⚠️ 強烈買點觸發！</h4>
-                                <p class="text-sm mt-1">已觸發 5% 回檔，可考慮放大資金規模。</p>
+                                <h4 class="text-sm font-bold">⚠️ 強烈買點觸發！</h4>
+                                <p class="text-xs mt-1">已觸發 5% 回檔，可考慮放大資金規模。</p>
                             </div>
                         </div>
                         <div id="alertStateS3" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                              <i data-lucide="gem" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
-                                <h4 class="font-bold">🚨 絕地大特價觸發！</h4>
-                                <p class="text-sm mt-1">已觸發 7% 回檔，可考慮執行最終批次買進。</p>
+                                <h4 class="text-sm font-bold">🚨 絕地大特價觸發！</h4>
+                                <p class="text-xs mt-1">已觸發 7% 回檔，可考慮執行最終批次買進。</p>
                             </div>
                         </div>
                     </div>
