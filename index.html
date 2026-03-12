@@ -154,11 +154,12 @@
                         🏹 進場獵殺：三階段買點追蹤
                     </h2>
                     
-                    <div class="space-y-8 support-levels-container">
+                    <div class="space-y-8">
                         <!-- Levels will be injected here -->
                     </div>
                     
                     <div class="space-y-4 mt-8">
+                        <!-- State: Wait -->
                         <div id="alertStateWait" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                             <i data-lucide="glasses" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
@@ -166,6 +167,7 @@
                                 <p class="text-sm mt-1" id="alertTextWait">等待數據載入...</p>
                             </div>
                         </div>
+                        <!-- State: S1 -->
                         <div id="alertStateS1" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                             <i data-lucide="shopping-cart" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
@@ -173,6 +175,7 @@
                                 <p class="text-sm mt-1">已觸發 4% 回檔，適合進行首批試單建倉。</p>
                             </div>
                         </div>
+                        <!-- State: S2 -->
                         <div id="alertStateS2" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                             <i data-lucide="shopping-bag" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
@@ -180,6 +183,7 @@
                                 <p class="text-sm mt-1">已觸發 5% 回檔，可考慮放大資金規模。</p>
                             </div>
                         </div>
+                        <!-- State: S3 -->
                         <div id="alertStateS3" class="p-4 rounded-lg border flex items-start gap-3 transition-all duration-300">
                              <i data-lucide="gem" class="w-6 h-6 flex-shrink-0 mt-0.5"></i>
                             <div>
@@ -214,8 +218,8 @@
         };
 
         function renderSupportLevels() {
-            const container = document.querySelector('.support-levels-container');
-            if (!container) return;
+            const container = document.querySelector('.lg\:col-span-2 .space-y-8');
+            if (!container) return; // Prevent error if container is missing
             let html = '';
             config.supportLevels.forEach(level => {
                 html += `
@@ -252,6 +256,7 @@
                 'USD/TWD 匯率': twdRate = 0
             } = sheetData;
             
+            // Realtime price display
             document.getElementById('realtimePrice').innerText = realtimePrice.toFixed(2);
             const changePct = previousClose > 0 ? ((realtimePrice - previousClose) / previousClose) * 100 : 0;
             const changeEl = document.getElementById('priceChange');
@@ -267,6 +272,7 @@
                 iconWrapper.innerHTML = '<i data-lucide="trending-down" class="w-4 h-4"></i>';
             }
 
+            // Sheet data display
             document.getElementById('sheetPrice').innerText = parseFloat(sheetPrice).toFixed(2);
             document.getElementById('high20').value = parseFloat(high20).toFixed(2);
             document.getElementById('ma20').value = parseFloat(ma20).toFixed(2);
@@ -293,6 +299,7 @@
             
             function updateMAStatus(idPrefix, price, maPrice, name) {
                 const statusEl = document.getElementById(`${idPrefix}Status`);
+                const boxEl = document.getElementById(`${idPrefix}StatusBox`);
                 if (price > maPrice) {
                     statusEl.innerText = `站上${name}`;
                     statusEl.className = "font-bold text-emerald-500";
@@ -316,7 +323,7 @@
                     distEl.className = "text-sm font-bold text-emerald-400";
                     barEl.style.width = "100%";
                 } else {
-                    const diffPct = sheetPrice > 0 ? (diff / sheetPrice) * 100 : 0;
+                    const diffPct = sheetPrice > 0 ? ((diff / sheetPrice) * 100) : 0;
                     distEl.innerText = `距離: ${diffPct.toFixed(2)}%`;
                     distEl.className = "text-sm text-slate-400";
                     const totalDropRange = high20 - targetPrice;
@@ -327,6 +334,7 @@
                 }
             });
 
+            // Update 4-state alerts
             const alertStates = {
                 wait: document.getElementById('alertStateWait'),
                 s1: document.getElementById('alertStateS1'),
@@ -344,11 +352,11 @@
             const s1Price = high20 * (1 - config.supportLevels[0].drop);
 
             if (sheetPrice <= s3Price && s3Price > 0) {
-                if(alertStates.s3) alertStates.s3.className = "p-4 rounded-lg border border-rose-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-rose-900/40";
+                alertStates.s3.className = "p-4 rounded-lg border border-rose-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-rose-900/40";
             } else if (sheetPrice <= s2Price && s2Price > 0) {
-                if(alertStates.s2) alertStates.s2.className = "p-4 rounded-lg border border-amber-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-amber-900/40";
+                alertStates.s2.className = "p-4 rounded-lg border border-amber-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-amber-900/40";
             } else if (sheetPrice <= s1Price && s1Price > 0) {
-                if(alertStates.s1) alertStates.s1.className = "p-4 rounded-lg border border-emerald-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-emerald-900/40";
+                alertStates.s1.className = "p-4 rounded-lg border border-emerald-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100 bg-emerald-900/40";
             } else {
                 if (alertStates.wait) {
                     alertStates.wait.className = "p-4 rounded-lg border border-slate-500 flex items-start gap-3 transition-all duration-300 text-white opacity-100";
